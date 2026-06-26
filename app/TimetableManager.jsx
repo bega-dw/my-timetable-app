@@ -11,7 +11,7 @@ export default function TimetableManager() {
   });
   const [newSubject, setNewSubject] = useState('');
   
-  // [중요] 여기에 본인의 구글 웹 앱 URL을 넣으세요!
+  // [완성] 제공해주신 구글 웹 앱 URL입니다.
   const API_URL = 'https://script.google.com/macros/s/AKfycbwnZrpVrhyVOM5Vq2yktPZKa1m_z1WnSP_v_fGyQJWqhlMV8Vbxvg8sHSd7td5UZf1lcw/exec';
 
   // 1. 데이터 불러오기
@@ -21,9 +21,15 @@ export default function TimetableManager() {
       .then(data => {
         const newSchedule = { '월': [], '화': [], '수': [], '목': [], '금': [], '토': [], '일': [] };
         data.forEach(row => {
+          // row[0]=id, row[1]=day, row[2]=time, row[3]=subject, row[4]=completedBy
           const [id, day, time, subject, completedBy] = row;
           if (newSchedule[day]) {
-            newSchedule[day].push({ id, time, subject, completedBy: completedBy ? String(completedBy).split(',') : [] });
+            newSchedule[day].push({ 
+              id, 
+              time, 
+              subject, 
+              completedBy: completedBy ? String(completedBy).split(',') : [] 
+            });
           }
         });
         setSchedule(newSchedule);
@@ -57,22 +63,26 @@ export default function TimetableManager() {
     setSchedule(prev => ({ ...prev, [selectedDay]: prev[selectedDay].filter(i => i.id !== id) }));
   };
 
-  // 초기화
+  // 주간 초기화
   const resetAttendance = async () => {
-    if (!confirm("모든 체크를 초기화할까요?")) return;
+    if (!confirm("정말 모든 체크를 초기화하시겠습니까?")) return;
     await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'reset' }) });
     setSchedule(prev => {
       const newState = { ...prev };
-      Object.keys(newState).forEach(day => { newState[day] = newState[day].map(i => ({ ...i, completedBy: [] })); });
+      Object.keys(newState).forEach(day => { 
+        newState[day] = newState[day].map(i => ({ ...i, completedBy: [] })); 
+      });
       return newState;
     });
   };
 
-  // 체크/완료 처리
+  // 체크 토글
   const toggleCheck = async (id) => {
     const item = schedule[selectedDay].find(i => i.id === id);
     const isChecked = item.completedBy.includes(userId);
-    const newCompletedBy = isChecked ? item.completedBy.filter(u => u !== userId) : [...item.completedBy, userId];
+    const newCompletedBy = isChecked 
+      ? item.completedBy.filter(u => u !== userId) 
+      : [...item.completedBy, userId];
 
     await fetch(API_URL, {
       method: 'POST',
@@ -85,17 +95,16 @@ export default function TimetableManager() {
     }));
   };
 
+  // 로그인 화면
   if (!role) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-sm text-center">
-          <h1 className="text-xl font-bold mb-4">로그인</h1>
-          <input className="w-full p-3 border rounded-lg mb-4" placeholder="ID (admin 또는 찬교)" onChange={(e) => setUserId(e.target.value)} />
-          <button className="w-full py-3 bg-blue-600 text-white rounded-lg" onClick={() => {
-            if (userId === 'admin') setRole('admin');
-            else if (userId === '찬교') { setRole('student'); setUserId('찬교'); }
-            else alert('아이디 오류!');
-          }}>로그인</button>
+          <h1 className="text-xl font-bold mb-6">로그인 선택</h1>
+          <button className="w-full py-4 mb-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600" 
+            onClick={() => { setRole('admin'); setUserId('admin'); }}>관리자 모드</button>
+          <button className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700" 
+            onClick={() => { setRole('student'); setUserId('찬교'); }}>찬교 입장</button>
         </div>
       </div>
     );
@@ -104,27 +113,30 @@ export default function TimetableManager() {
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
+        {/* 요일 탭 */}
         <div className="flex gap-1 mb-6 overflow-x-auto pb-2">
           {days.map(day => (
-            <button key={day} onClick={() => setSelectedDay(day)} className={`px-4 py-2 rounded-lg font-bold ${selectedDay === day ? 'bg-blue-600 text-white' : 'bg-white border'}`}>
+            <button key={day} onClick={() => setSelectedDay(day)} className={`px-4 py-2 rounded-lg font-bold ${selectedDay === day ? 'bg-blue-600 text-white' : 'bg-white border text-gray-600'}`}>
               {day}요일
             </button>
           ))}
         </div>
 
+        {/* 관리자 영역 */}
         {role === 'admin' && (
           <div className="bg-white p-6 rounded-2xl shadow-sm mb-6 border">
             <form onSubmit={addSchedule} className="flex gap-2 mb-4">
               <input type="time" name="startTime" className="border p-2 rounded" required />
               <span>~</span>
               <input type="time" name="endTime" className="border p-2 rounded" required />
-              <input value={newSubject} onChange={e => setNewSubject(e.target.value)} className="flex-1 border p-2 rounded" placeholder="내용" required />
-              <button type="submit" className="bg-red-500 text-white px-4 rounded">등록</button>
+              <input value={newSubject} onChange={e => setNewSubject(e.target.value)} className="flex-1 border p-2 rounded" placeholder="일정 내용" required />
+              <button type="submit" className="bg-red-500 text-white px-4 rounded font-bold">등록</button>
             </form>
-            <button onClick={resetAttendance} className="w-full py-2 bg-gray-800 text-white rounded-lg font-bold">주간 전체 초기화</button>
+            <button onClick={resetAttendance} className="w-full py-2 bg-gray-800 text-white rounded-lg font-bold">📅 주간 체크 전체 초기화</button>
           </div>
         )}
 
+        {/* 시간표 */}
         <div className="bg-white p-6 rounded-2xl shadow-sm">
           <h2 className="text-xl font-bold mb-4">{selectedDay}요일 시간표</h2>
           {schedule[selectedDay].map(item => (
@@ -134,7 +146,7 @@ export default function TimetableManager() {
                 {role === 'admin' && (
                   <>
                     <div className="text-xs text-gray-500 mr-2">완료: {item.completedBy.join(', ')}</div>
-                    <button onClick={() => deleteSchedule(item.id)} className="bg-red-100 text-red-600 px-3 py-1 rounded">삭제</button>
+                    <button onClick={() => deleteSchedule(item.id)} className="bg-red-100 text-red-600 px-3 py-1 rounded text-sm font-bold">삭제</button>
                   </>
                 )}
                 {role === 'student' && (
