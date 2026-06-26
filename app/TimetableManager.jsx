@@ -13,15 +13,31 @@ export default function TimetableManager() {
 
   // 1. 데이터 불러오기 (초기화)
   useEffect(() => {
-    // 여기에 실제 구글 시트 URL을 넣으세요
-    const fetchUrl = 'https://script.google.com/macros/s/AKfycbyFIm50OXn3vxgNDR7LPAYFseRDWuOQ1zTMHavPDLFY5JxMu_zARJRDRiSYL0TvNcWirQ/exec'
-    
-    fetch(fetchUrl)
+    // 1. 데이터 가져오기 (GET)
+    fetch('https://script.google.com/macros/s/YOUR_URL/exec') // 👈 자신의 URL로 변경
       .then(res => res.json())
       .then(data => {
-        // 여기에 데이터를 받아와서 setSchedule(data) 하는 로직을 구현하면 됩니다.
+        // 2. 데이터를 우리가 쓰는 형태(객체)로 변환
+        const newSchedule = { '월': [], '화': [], '수': [], '목': [], '금': [], '토': [], '일': [] };
+        
+        data.forEach(row => {
+          // row[0]=id, row[1]=day, row[2]=time, row[3]=subject, row[4]=completedBy
+          const [id, day, time, subject, completedBy] = row;
+          
+          if (newSchedule[day]) {
+            newSchedule[day].push({
+              id: id,
+              time: time,
+              subject: subject,
+              completedBy: completedBy ? completedBy.split(',') : []
+            });
+          }
+        });
+        
+        // 3. 상태 업데이트
+        setSchedule(newSchedule);
       })
-      .catch(err => console.error("데이터 로드 실패:", err));
+      .catch(err => console.error("데이터 불러오기 실패:", err));
   }, []);
 
   const days = ['월', '화', '수', '목', '금', '토', '일'];
