@@ -7,7 +7,6 @@ export default function TimetableManager() {
   const [role, setRole] = useState(null);
   const [selectedDay, setSelectedDay] = useState('월');
   const [selectedDays, setSelectedDays] = useState(['월']);
-  
   const [schedule, setSchedule] = useState({
     '월': [], '화': [], '수': [], '목': [], '금': [], '토': [], '일': []
   });
@@ -129,7 +128,8 @@ export default function TimetableManager() {
 
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
           <h2 className="text-xl font-bold mb-4 text-gray-900">{selectedDay}요일 시간표</h2>
-          {schedule[selectedDay].map(item => (
+          {/* 시간순 정렬 로직 추가됨: .sort((a, b) => a.time.localeCompare(b.time)) */}
+          {schedule[selectedDay].sort((a, b) => a.time.localeCompare(b.time)).map(item => (
             <div key={item.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-xl mb-2 border border-gray-100">
               <div className="text-gray-800"><strong>{item.time}</strong> - {item.subject}</div>
               <div className="flex items-center gap-2">
