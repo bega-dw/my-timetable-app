@@ -83,7 +83,7 @@ export default function TimetableManager() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-sm">
           <h1 className="text-xl font-bold mb-4 text-center">로그인</h1>
-          <input className="w-full p-3 border rounded-lg mb-4" placeholder="ID 입력 (admin/학생)" onChange={(e) => setUserId(e.target.value)} />
+          <input className="w-full p-3 border rounded-lg mb-4" placeholder="ID 입력" onChange={(e) => setUserId(e.target.value)} />
           <button className="w-full py-3 bg-blue-600 text-white rounded-lg" onClick={() => setRole(userId === 'admin' ? 'admin' : 'student')}>로그인</button>
         </div>
       </div>
