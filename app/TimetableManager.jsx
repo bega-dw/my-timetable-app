@@ -75,19 +75,28 @@ export default function TimetableManager() {
         </div>
 
         {/* 관리자 등록 폼 */}
-        {role === 'admin' && (
-          <div className="bg-white p-6 rounded-2xl shadow-sm mb-6">
-            <h2 className="text-lg font-bold mb-4">{selectedDay}요일 일정 추가</h2>
-            <form onSubmit={addSchedule} className="flex gap-2">
-              <select value={newTime} onChange={e => setNewTime(e.target.value)} className="p-3 border rounded-lg">
-                <option value="">시간 선택</option>
-                {timeOptions.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-              <input value={newSubject} onChange={e => setNewSubject(e.target.value)} className="flex-1 p-3 border rounded-lg" placeholder="일정 내용" />
-              <button type="submit" className="px-6 bg-red-500 text-white rounded-lg">등록</button>
-            </form>
-          </div>
-        )}
+{role === 'admin' && (
+  <div className="bg-white p-6 rounded-2xl shadow-sm mb-6">
+    <h2 className="text-lg font-bold mb-4">{selectedDay}요일 일정 추가</h2>
+    <form onSubmit={addSchedule} className="flex gap-2">
+      {/* 1. 시작 시간 */}
+      <input 
+        type="time" 
+        value={newTime} 
+        onChange={e => setNewTime(e.target.value)} 
+        className="p-3 border rounded-lg" 
+      />
+      {/* 2. 내용 입력 */}
+      <input 
+        value={newSubject} 
+        onChange={e => setNewSubject(e.target.value)} 
+        className="flex-1 p-3 border rounded-lg" 
+        placeholder="일정 내용" 
+      />
+      <button type="submit" className="px-6 bg-red-500 text-white rounded-lg">등록</button>
+    </form>
+  </div>
+)}
 
         {/* 시간표 리스트 */}
         <div className="bg-white p-6 rounded-2xl shadow-sm">
