@@ -12,7 +12,7 @@ export default function TimetableManager() {
   const [newSubject, setNewSubject] = useState('');
   
   // [중요] 여기에 본인의 구글 웹 앱 URL을 넣으세요!
-  const API_URL = 'https://gemini.google.com/app/0b59b9c1d57e3177https://script.google.com/macros/s/AKfycbwnZrpVrhyVOM5Vq2yktPZKa1m_z1WnSP_v_fGyQJWqhlMV8Vbxvg8sHSd7td5UZf1lcw/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwnZrpVrhyVOM5Vq2yktPZKa1m_z1WnSP_v_fGyQJWqhlMV8Vbxvg8sHSd7td5UZf1lcw/exec';
 
   // 1. 데이터 불러오기
   useEffect(() => {
