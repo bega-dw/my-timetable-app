@@ -21,16 +21,26 @@ export default function TimetableManager() {
 
   // 일정 추가 함수
   const addSchedule = (e) => {
-    e.preventDefault();
-    if (!newTime || !newSubject) return;
-    
-    setSchedule(prev => ({
-      ...prev,
-      [selectedDay]: [...prev[selectedDay], { id: Date.now(), time: newTime, subject: newSubject, completedBy: [] }]
-    }));
-    setNewTime('');
-    setNewSubject('');
-  };
+  e.preventDefault();
+  const startTime = e.target.startTime.value;
+  const endTime = e.target.endTime.value;
+  
+  if (!startTime || !endTime || !newSubject) return;
+  
+  const timeDisplay = `${startTime} ~ ${endTime}`; // "09:00 ~ 10:30" 형식으로 만듦
+  
+  setSchedule(prev => ({
+    ...prev,
+    [selectedDay]: [...prev[selectedDay], { 
+      id: Date.now(), 
+      time: timeDisplay, 
+      subject: newSubject, 
+      completedBy: [] 
+    }]
+  }));
+  
+  setNewSubject(''); // 내용 초기화
+};
 
   // 체크 토글
   const toggleCheck = (id) => {
@@ -76,27 +86,38 @@ export default function TimetableManager() {
 
         {/* 관리자 등록 폼 */}
 {role === 'admin' && (
-  <div className="bg-white p-6 rounded-2xl shadow-sm mb-6">
-    <h2 className="text-lg font-bold mb-4">{selectedDay}요일 일정 추가</h2>
-    <form onSubmit={addSchedule} className="flex gap-2">
-      {/* 1. 시작 시간 */}
-      <input 
-        type="time" 
-        value={newTime} 
-        onChange={e => setNewTime(e.target.value)} 
-        className="p-3 border rounded-lg" 
-      />
-      {/* 2. 내용 입력 */}
+  <div className="bg-white p-6 rounded-2xl shadow-sm mb-6 border border-gray-100">
+    <h2 className="text-lg font-bold mb-4 text-red-500">{selectedDay}요일 일정 추가</h2>
+    <form onSubmit={addSchedule} className="flex flex-wrap gap-2 items-center">
+      <div className="flex items-center gap-2">
+        <input 
+          type="time" 
+          id="startTime"
+          className="p-2 border border-gray-300 rounded-lg"
+          required
+        />
+        <span className="text-gray-500">~</span>
+        <input 
+          type="time" 
+          id="endTime"
+          className="p-2 border border-gray-300 rounded-lg"
+          required
+        />
+      </div>
       <input 
         value={newSubject} 
         onChange={e => setNewSubject(e.target.value)} 
-        className="flex-1 p-3 border rounded-lg" 
+        className="flex-1 min-w-[200px] p-2 border border-gray-300 rounded-lg" 
         placeholder="일정 내용" 
+        required
       />
-      <button type="submit" className="px-6 bg-red-500 text-white rounded-lg">등록</button>
+      <button type="submit" className="px-6 py-2 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600">
+        등록
+      </button>
     </form>
   </div>
 )}
+
 
         {/* 시간표 리스트 */}
         <div className="bg-white p-6 rounded-2xl shadow-sm">
