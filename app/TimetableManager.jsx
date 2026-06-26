@@ -14,7 +14,7 @@ export default function TimetableManager() {
   // 1. 데이터 불러오기 (초기화)
   useEffect(() => {
     // 여기에 실제 구글 시트 URL을 넣으세요
-    const fetchUrl = 'https://script.google.com/macros/s/AKfycbz-uNC7n4WriQL8uPWO0njxTo1ZntMfu2X7wsrgI-CIl8wiyKCWmenCgm0LZglhk_KWpA/exec';
+    const fetchUrl = 'https://script.google.com/macros/s/AKfycbz-FgMGgTaj1TrTbIlzQVNOi6OCdZklrvmJmZm4giXg05_oPHpwPD9bm4SVjxe6FV-bWA/exec';
     
     fetch(fetchUrl)
       .then(res => res.json())
@@ -38,7 +38,7 @@ export default function TimetableManager() {
     const newEntry = { id: Date.now(), day: selectedDay, time: timeDisplay, subject: newSubject, completedBy: [] };
 
     // 서버에 저장 (실제 URL로 교체 필요)
-    await fetch('https://script.google.com/macros/s/AKfycbz-uNC7n4WriQL8uPWO0njxTo1ZntMfu2X7wsrgI-CIl8wiyKCWmenCgm0LZglhk_KWpA/exec', {
+    await fetch('https://script.google.com/macros/s/AKfycbz-FgMGgTaj1TrTbIlzQVNOi6OCdZklrvmJmZm4giXg05_oPHpwPD9bm4SVjxe6FV-bWA/exec', {
       method: 'POST',
       body: JSON.stringify({ action: 'add', day: selectedDay, ...newEntry })
     });
@@ -53,7 +53,7 @@ export default function TimetableManager() {
 
   // 삭제 함수
   const deleteSchedule = async (id) => {
-    await fetch('https://script.google.com/macros/s/AKfycbz-uNC7n4WriQL8uPWO0njxTo1ZntMfu2X7wsrgI-CIl8wiyKCWmenCgm0LZglhk_KWpA/exec', {
+    await fetch('https://script.google.com/macros/s/AKfycbz-FgMGgTaj1TrTbIlzQVNOi6OCdZklrvmJmZm4giXg05_oPHpwPD9bm4SVjxe6FV-bWA/exec', {
       method: 'POST',
       body: JSON.stringify({ action: 'delete', id: id })
     });
