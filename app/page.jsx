@@ -1,4 +1,9 @@
 'use client';
+import TimetableManager from './TimetableManager'; // 같은 폴더에 있다고 가정
+
+export default function Page() {
+  return <TimetableManager />;
+}
 
 import React, { useState, useEffect } from 'react';
 
