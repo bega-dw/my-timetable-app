@@ -112,7 +112,7 @@ export default function TimetableManager() {
                 )}
                 {role === 'student' && (
                   <button onClick={() => toggleCheck(item.id)} className={`px-4 py-2 rounded-lg font-bold transition-colors ${item.completedBy.includes(userId) ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-700'}`}>
-                    {item.completedBy.includes(userId) ? '✅ 완료됨' : '⬜ 체크하기'}
+                    {item.completedBy.includes(userId) ? '✅ 완료' : '⬜ 체크'}
                   </button>
                 )}
               </div>
