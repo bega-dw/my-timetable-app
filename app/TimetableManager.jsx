@@ -11,8 +11,8 @@ export default function TimetableManager() {
   });
   const [newSubject, setNewSubject] = useState('');
   
-  // 구글 앱스 스크립트 URL (본인의 URL로 수정하세요!)
-  const API_URL = 'https://script.google.com/macros/s/AKfycbyk0qJhc-H-efqWH-5iK0L3hGhrGH-TMjCYJnCI9Ynw7Oss1vTcGaNeT01vOzchoLyJXA/exec';
+  // [중요] 여기에 본인의 구글 웹 앱 URL을 넣으세요!
+  const API_URL = 'https://gemini.google.com/app/0b59b9c1d57e3177https://script.google.com/macros/s/AKfycbwnZrpVrhyVOM5Vq2yktPZKa1m_z1WnSP_v_fGyQJWqhlMV8Vbxvg8sHSd7td5UZf1lcw/exec';
 
   // 1. 데이터 불러오기
   useEffect(() => {
@@ -21,14 +21,14 @@ export default function TimetableManager() {
       .then(data => {
         const newSchedule = { '월': [], '화': [], '수': [], '목': [], '금': [], '토': [], '일': [] };
         data.forEach(row => {
-          // row[0]=id, row[1]=day, row[2]=time, row[3]=subject, row[4]=completedBy
           const [id, day, time, subject, completedBy] = row;
           if (newSchedule[day]) {
             newSchedule[day].push({ id, time, subject, completedBy: completedBy ? String(completedBy).split(',') : [] });
           }
         });
         setSchedule(newSchedule);
-      });
+      })
+      .catch(err => console.error("데이터 로드 실패:", err));
   }, []);
 
   const days = ['월', '화', '수', '목', '금', '토', '일'];
@@ -57,13 +57,23 @@ export default function TimetableManager() {
     setSchedule(prev => ({ ...prev, [selectedDay]: prev[selectedDay].filter(i => i.id !== id) }));
   };
 
+  // 초기화
+  const resetAttendance = async () => {
+    if (!confirm("모든 체크를 초기화할까요?")) return;
+    await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'reset' }) });
+    setSchedule(prev => {
+      const newState = { ...prev };
+      Object.keys(newState).forEach(day => { newState[day] = newState[day].map(i => ({ ...i, completedBy: [] })); });
+      return newState;
+    });
+  };
+
   // 체크/완료 처리
   const toggleCheck = async (id) => {
     const item = schedule[selectedDay].find(i => i.id === id);
     const isChecked = item.completedBy.includes(userId);
     const newCompletedBy = isChecked ? item.completedBy.filter(u => u !== userId) : [...item.completedBy, userId];
 
-    // 서버 업데이트
     await fetch(API_URL, {
       method: 'POST',
       body: JSON.stringify({ action: 'update', id: id, completedBy: newCompletedBy.join(',') })
@@ -78,8 +88,8 @@ export default function TimetableManager() {
   if (!role) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-sm">
-          <h1 className="text-xl font-bold mb-4 text-center">로그인</h1>
+        <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-sm text-center">
+          <h1 className="text-xl font-bold mb-4">로그인</h1>
           <input className="w-full p-3 border rounded-lg mb-4" placeholder="ID (admin 또는 찬교)" onChange={(e) => setUserId(e.target.value)} />
           <button className="w-full py-3 bg-blue-600 text-white rounded-lg" onClick={() => {
             if (userId === 'admin') setRole('admin');
@@ -104,13 +114,14 @@ export default function TimetableManager() {
 
         {role === 'admin' && (
           <div className="bg-white p-6 rounded-2xl shadow-sm mb-6 border">
-            <form onSubmit={addSchedule} className="flex gap-2">
+            <form onSubmit={addSchedule} className="flex gap-2 mb-4">
               <input type="time" name="startTime" className="border p-2 rounded" required />
               <span>~</span>
               <input type="time" name="endTime" className="border p-2 rounded" required />
               <input value={newSubject} onChange={e => setNewSubject(e.target.value)} className="flex-1 border p-2 rounded" placeholder="내용" required />
               <button type="submit" className="bg-red-500 text-white px-4 rounded">등록</button>
             </form>
+            <button onClick={resetAttendance} className="w-full py-2 bg-gray-800 text-white rounded-lg font-bold">주간 전체 초기화</button>
           </div>
         )}
 
