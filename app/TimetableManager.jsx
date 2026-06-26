@@ -10,7 +10,7 @@ export default function TimetableManager() {
   const [newSubject, setNewSubject] = useState('');
   const [editingId, setEditingId] = useState(null);
 
-  const API_URL = 'https://script.google.com/macros/s/AKfycbzpU9MVc6s3qQ04WWcslbkCtlu9qAXdcgUv_OfaIFHkErp5EQ4AxhMDcQnKyNEE1mbnoQ/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzYtubdzOTwImjvdZbr_ZlbIJBjhmU91JnZr9QM0XuVn-5yWmzgeq-nyun-rPumKcuiHQ/exec';
 
   useEffect(() => {
     fetch(API_URL).then(res => res.json()).then(data => {
