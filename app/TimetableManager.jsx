@@ -35,7 +35,7 @@ export default function TimetableManager() {
     if (!startTime || !endTime || !newSubject) return;
 
     const timeDisplay = `${startTime} ~ ${endTime}`;
-    const newEntry = { id: Date.now(), time: timeDisplay, subject: newSubject, completedBy: [] };
+    const newEntry = { id: Date.now(), day: selectedDay, time: timeDisplay, subject: newSubject, completedBy: [] };
 
     // 서버에 저장 (실제 URL로 교체 필요)
     await fetch('https://script.google.com/macros/s/AKfycbz-uNC7n4WriQL8uPWO0njxTo1ZntMfu2X7wsrgI-CIl8wiyKCWmenCgm0LZglhk_KWpA/exec', {
