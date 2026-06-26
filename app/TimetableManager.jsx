@@ -14,7 +14,7 @@ export default function TimetableManager() {
   // 1. 데이터 불러오기 (초기화)
   useEffect(() => {
     // 1. 데이터 가져오기 (GET)
-    fetch('https://script.google.com/macros/s/YOUR_URL/exec') // 👈 자신의 URL로 변경
+    fetch('https://script.google.com/macros/s/AKfycbyFIm50OXn3vxgNDR7LPAYFseRDWuOQ1zTMHavPDLFY5JxMu_zARJRDRiSYL0TvNcWirQ/exec') // 👈 자신의 URL로 변경
       .then(res => res.json())
       .then(data => {
         // 2. 데이터를 우리가 쓰는 형태(객체)로 변환
