@@ -7,6 +7,16 @@ export default function TimetableManager() {
   const [role, setRole] = useState(null);
   const [selectedDay, setSelectedDay] = useState('월');
   
+// 컴포넌트 내부 상단에 추가
+useEffect(() => {
+  fetch('여러분의_구글_웹앱_URL') // 👈 여기에 아까 만든 URL을 넣으세요
+    .then(res => res.json())
+    .then(data => {
+      // 데이터 변환 로직 (시트 구조에 맞춰 수정 필요)
+      // 예: [{ day: '월', time: '09:00~10:00', subject: '수학', ... }]
+    });
+}, []);
+
   // 요일 및 시간 옵션
   const days = ['월', '화', '수', '목', '금', '토', '일'];
   const timeOptions = Array.from({ length: 13 }, (_, i) => `${i + 9}:00`);
@@ -29,6 +39,14 @@ export default function TimetableManager() {
   
   const timeDisplay = `${startTime} ~ ${endTime}`; // "09:00 ~ 10:30" 형식으로 만듦
   
+const newEntry = { day: selectedDay, time: timeDisplay, subject: newSubject, completedBy: '' };
+
+  // 1. 구글 시트로 데이터 전송 (POST 요청)
+  await fetch('https://script.google.com/macros/s/AKfycbz-uNC7n4WriQL8uPWO0njxTo1ZntMfu2X7wsrgI-CIl8wiyKCWmenCgm0LZglhk_KWpA/exec', {
+    method: 'POST',
+    body: JSON.stringify(newEntry)
+  });
+
   setSchedule(prev => ({
     ...prev,
     [selectedDay]: [...prev[selectedDay], { 
