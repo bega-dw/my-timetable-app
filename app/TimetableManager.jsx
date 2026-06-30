@@ -10,6 +10,7 @@ export default function TimetableManager() {
   const [newSubject, setNewSubject] = useState('');
   const [editingId, setEditingId] = useState(null);
 
+  // 현재 올려주신 최신 API 주소 그대로 유지했습니다.
   const API_URL = 'https://script.google.com/macros/s/AKfycbzYtubdzOTwImjvdZbr_ZlbIJBjhmU91JnZr9QM0XuVn-5yWmzgeq-nyun-rPumKcuiHQ/exec';
 
   useEffect(() => {
@@ -51,6 +52,17 @@ export default function TimetableManager() {
     setEditingId(null);
   };
 
+  // 빠져있던 전체 초기화 함수 복구 완료
+  const resetAttendance = async () => {
+    if (!confirm("정말 모든 체크를 초기화하시겠습니까?")) return;
+    await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'reset' }) });
+    setSchedule(prev => {
+      const newState = { ...prev };
+      Object.keys(newState).forEach(day => { newState[day] = newState[day].map(i => ({ ...i, completedBy: [] })); });
+      return newState;
+    });
+  };
+
   const toggleCheck = async (id) => {
     const item = Object.values(schedule).flat().find(i => i.id === id);
     const newCompletedBy = item.completedBy.includes(userId) ? item.completedBy.filter(u => u !== userId) : [...item.completedBy, userId];
@@ -85,13 +97,14 @@ export default function TimetableManager() {
               <input value={newSubject} onChange={e => setNewSubject(e.target.value)} className="flex-1 border border-gray-300 p-2 rounded" placeholder="내용" required />
               <button type="submit" className="bg-red-500 text-white px-4 rounded font-bold">등록</button>
             </form>
+            {/* 빠져있던 전체 초기화 버튼 복구 완료 */}
+            <button onClick={resetAttendance} className="w-full py-2 bg-gray-800 text-white rounded-lg font-bold">📅 주간 체크 전체 초기화</button>
           </div>
         )}
 
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
           <h2 className="text-xl font-bold mb-4">{selectedDay}요일 시간표</h2>
           {schedule[selectedDay].sort((a,b) => a.time.localeCompare(b.time)).map(item => (
-            // [수정된 부분] 완료 여부에 따라 배경색이 emerald-50으로 바뀝니다.
             <div key={item.id} className={`flex justify-between items-center p-4 rounded-xl mb-2 border ${item.completedBy.length > 0 ? 'bg-emerald-50 border-emerald-100' : 'bg-gray-50 border-gray-100'}`}>
               {editingId === item.id ? (
                 <div className="flex gap-2 flex-1 mr-2">
