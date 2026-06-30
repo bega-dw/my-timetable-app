@@ -10,7 +10,6 @@ export default function TimetableManager() {
   const [newSubject, setNewSubject] = useState('');
   const [editingId, setEditingId] = useState(null);
 
-  // 현재 올려주신 최신 API 주소 그대로 유지했습니다.
   const API_URL = 'https://script.google.com/macros/s/AKfycbzYtubdzOTwImjvdZbr_ZlbIJBjhmU91JnZr9QM0XuVn-5yWmzgeq-nyun-rPumKcuiHQ/exec';
 
   useEffect(() => {
@@ -52,7 +51,6 @@ export default function TimetableManager() {
     setEditingId(null);
   };
 
-  // 빠져있던 전체 초기화 함수 복구 완료
   const resetAttendance = async () => {
     if (!confirm("정말 모든 체크를 초기화하시겠습니까?")) return;
     await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'reset' }) });
@@ -63,9 +61,20 @@ export default function TimetableManager() {
     });
   };
 
+  // ✅ 핵심: 체크할 때 현재 시간 기록하는 기능
   const toggleCheck = async (id) => {
     const item = Object.values(schedule).flat().find(i => i.id === id);
-    const newCompletedBy = item.completedBy.includes(userId) ? item.completedBy.filter(u => u !== userId) : [...item.completedBy, userId];
+    const isChecked = item.completedBy.length > 0;
+    
+    let newCompletedBy;
+    if (isChecked) {
+      newCompletedBy = []; // 체크 해제
+    } else {
+      const now = new Date();
+      const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      newCompletedBy = [`${userId}|${timeStr}`]; // "찬교|6/30 17:30" 형태로 구글 시트에 저장
+    }
+
     await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'update', id, completedBy: newCompletedBy.join(',') }) });
     setSchedule(prev => { const next = { ...prev }; Object.keys(next).forEach(day => next[day] = next[day].map(i => i.id === id ? {...i, completedBy: newCompletedBy} : i)); return next; });
   };
@@ -97,40 +106,51 @@ export default function TimetableManager() {
               <input value={newSubject} onChange={e => setNewSubject(e.target.value)} className="flex-1 border border-gray-300 p-2 rounded" placeholder="내용" required />
               <button type="submit" className="bg-red-500 text-white px-4 rounded font-bold">등록</button>
             </form>
-            {/* 빠져있던 전체 초기화 버튼 복구 완료 */}
             <button onClick={resetAttendance} className="w-full py-2 bg-gray-800 text-white rounded-lg font-bold">📅 주간 체크 전체 초기화</button>
           </div>
         )}
 
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
           <h2 className="text-xl font-bold mb-4">{selectedDay}요일 시간표</h2>
-          {schedule[selectedDay].sort((a,b) => a.time.localeCompare(b.time)).map(item => (
-            <div key={item.id} className={`flex justify-between items-center p-4 rounded-xl mb-2 border ${item.completedBy.length > 0 ? 'bg-emerald-50 border-emerald-100' : 'bg-gray-50 border-gray-100'}`}>
-              {editingId === item.id ? (
-                <div className="flex gap-2 flex-1 mr-2">
-                  <input className="border p-1 w-20" defaultValue={item.time.split(' ~ ')[0]} id={`timeStart-${item.id}`} />
-                  <input className="border p-1 w-20" defaultValue={item.time.split(' ~ ')[1]} id={`timeEnd-${item.id}`} />
-                  <input className="border p-1 flex-1" defaultValue={item.subject} id={`sub-${item.id}`} />
-                  <button onClick={() => editSchedule(item.id, `${document.getElementById(`timeStart-${item.id}`).value} ~ ${document.getElementById(`timeEnd-${item.id}`).value}`, document.getElementById(`sub-${item.id}`).value)} className="bg-green-500 text-white px-2 rounded">저장</button>
+          {schedule[selectedDay].sort((a,b) => a.time.localeCompare(b.time)).map(item => {
+            const isChecked = item.completedBy.length > 0;
+            const checkRecord = item.completedBy[0];
+            // 구글 시트에서 '찬교|날짜 시간' 데이터를 분리해서 화면에 보여줌
+            const checkedTime = checkRecord && checkRecord.includes('|') ? checkRecord.split('|')[1] : null;
+
+            return (
+              <div key={item.id} className={`flex justify-between items-center p-4 rounded-xl mb-2 border ${isChecked ? 'bg-emerald-50 border-emerald-100' : 'bg-gray-50 border-gray-100'}`}>
+                {editingId === item.id ? (
+                  <div className="flex gap-2 flex-1 mr-2">
+                    <input className="border p-1 w-20" defaultValue={item.time.split(' ~ ')[0]} id={`timeStart-${item.id}`} />
+                    <input className="border p-1 w-20" defaultValue={item.time.split(' ~ ')[1]} id={`timeEnd-${item.id}`} />
+                    <input className="border p-1 flex-1" defaultValue={item.subject} id={`sub-${item.id}`} />
+                    <button onClick={() => editSchedule(item.id, `${document.getElementById(`timeStart-${item.id}`).value} ~ ${document.getElementById(`timeEnd-${item.id}`).value}`, document.getElementById(`sub-${item.id}`).value)} className="bg-green-500 text-white px-2 rounded">저장</button>
+                  </div>
+                ) : (
+                  <div className="font-semibold text-gray-800">
+                    <strong>{item.time}</strong> - {item.subject}
+                    {role === 'admin' && checkedTime && (
+                      <span className="ml-2 text-sm text-emerald-600 font-bold">({checkedTime} 체크됨)</span>
+                    )}
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  {role === 'admin' && editingId !== item.id && (
+                    <>
+                      <button onClick={() => setEditingId(item.id)} className="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm font-bold">수정</button>
+                      <button onClick={() => deleteSchedule(item.id)} className="bg-red-100 text-red-600 px-2 py-1 rounded text-sm font-bold">삭제</button>
+                    </>
+                  )}
+                  {role === 'student' && (
+                    <button onClick={() => toggleCheck(item.id)} className={`px-4 py-2 rounded-lg font-bold transition-colors ${isChecked ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-700'}`}>
+                      {isChecked ? (checkedTime ? `✅ 완료 (${checkedTime})` : '✅ 완료') : '⬜ 체크하기'}
+                    </button>
+                  )}
                 </div>
-              ) : (
-                <div className="font-semibold text-gray-800"><strong>{item.time}</strong> - {item.subject}</div>
-              )}
-              <div className="flex items-center gap-2">
-                {role === 'admin' && editingId !== item.id && (
-                  <>
-                    <button onClick={() => setEditingId(item.id)} className="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm font-bold">수정</button>
-                    <button onClick={() => deleteSchedule(item.id)} className="bg-red-100 text-red-600 px-2 py-1 rounded text-sm font-bold">삭제</button>
-                  </>
-                )}
-                {role === 'student' && (
-                  <button onClick={() => toggleCheck(item.id)} className={`px-4 py-2 rounded-lg font-bold transition-colors ${item.completedBy.includes(userId) ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-700'}`}>
-                    {item.completedBy.includes(userId) ? '✅ 완료' : '⬜ 체크'}
-                  </button>
-                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
