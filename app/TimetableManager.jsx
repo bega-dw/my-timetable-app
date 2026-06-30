@@ -12,15 +12,32 @@ export default function TimetableManager() {
 
   const API_URL = 'https://script.google.com/macros/s/AKfycbzYtubdzOTwImjvdZbr_ZlbIJBjhmU91JnZr9QM0XuVn-5yWmzgeq-nyun-rPumKcuiHQ/exec';
 
+  // 5초마다 구글 시트에서 최신 데이터를 자동으로 가져오는 로직
   useEffect(() => {
-    fetch(API_URL).then(res => res.json()).then(data => {
-      const newSchedule = { '월': [], '화': [], '수': [], '목': [], '금': [], '토': [], '일': [] };
-      data.forEach(row => {
-        const [id, day, time, subject, completedBy] = row;
-        if (newSchedule[day]) newSchedule[day].push({ id, time, subject, completedBy: completedBy ? String(completedBy).split(',') : [] });
-      });
-      setSchedule(newSchedule);
-    });
+    const fetchData = () => {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+          const newSchedule = { '월': [], '화': [], '수': [], '목': [], '금': [], '토': [], '일': [] };
+          data.forEach(row => {
+            const [id, day, time, subject, completedBy] = row;
+            if (newSchedule[day]) {
+              newSchedule[day].push({ id, time, subject, completedBy: completedBy ? String(completedBy).split(',') : [] });
+            }
+          });
+          setSchedule(newSchedule);
+        })
+        .catch(err => console.error("데이터 로드 실패:", err));
+    };
+
+    // 처음 켰을 때 한 번 가져옴
+    fetchData();
+
+    // 5초(5000ms)마다 fetchData 함수를 계속 실행 (자동 새로고침 핵심)
+    const interval = setInterval(fetchData, 5000);
+
+    // 화면 나갈 때 반복 종료
+    return () => clearInterval(interval);
   }, []);
 
   const days = ['월', '화', '수', '목', '금', '토', '일'];
@@ -61,18 +78,17 @@ export default function TimetableManager() {
     });
   };
 
-  // ✅ 핵심: 체크할 때 현재 시간 기록하는 기능
   const toggleCheck = async (id) => {
     const item = Object.values(schedule).flat().find(i => i.id === id);
     const isChecked = item.completedBy.length > 0;
     
     let newCompletedBy;
     if (isChecked) {
-      newCompletedBy = []; // 체크 해제
+      newCompletedBy = []; 
     } else {
       const now = new Date();
       const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      newCompletedBy = [`${userId}|${timeStr}`]; // "찬교|6/30 17:30" 형태로 구글 시트에 저장
+      newCompletedBy = [`${userId}|${timeStr}`]; 
     }
 
     await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'update', id, completedBy: newCompletedBy.join(',') }) });
@@ -115,7 +131,6 @@ export default function TimetableManager() {
           {schedule[selectedDay].sort((a,b) => a.time.localeCompare(b.time)).map(item => {
             const isChecked = item.completedBy.length > 0;
             const checkRecord = item.completedBy[0];
-            // 구글 시트에서 '찬교|날짜 시간' 데이터를 분리해서 화면에 보여줌
             const checkedTime = checkRecord && checkRecord.includes('|') ? checkRecord.split('|')[1] : null;
 
             return (
